@@ -77,6 +77,8 @@ parser_check.add_argument('-o', '--options', default='{}',
 parser_launch = subparsers.add_parser('launch',
                                       help='launch a task on the service associated to provided options')
 parser_launch.add_argument('-s', '--service', help="service name")
+parser_launch.add_argument('-N', '--ncu', default=1, type=int,
+                           help='number of computing units necessary for running the task')
 parser_launch.add_argument('-o', '--options', default='{}',
                            help="options selected to run the service")
 parser_launch.add_argument('-w', '--wait_after_launch', default=2, type=int,
@@ -256,6 +258,7 @@ elif args.cmd == "launch":
         content["iterations"] = args.iterations
     if args.priority:
         content["priority"] = args.priority
+    content["ncu"] = args.ncu
 
     logger.debug("sending request: %s", json.dumps(content))
 

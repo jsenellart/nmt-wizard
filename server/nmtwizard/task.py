@@ -10,13 +10,15 @@ def exists(redis, task_id):
     """Checks if a task exist."""
     return redis.exists("task:" + task_id)
 
-def create(redis, task_id, task_type, parent_task, resource, service, content, files, priority=0):
+def create(redis, task_id, task_type, parent_task, resource, ncu,
+           service, content, files, priority=0):
     """Creates a new task and enables it."""
     keyt = "task:" + task_id
     redis.hset(keyt, "type", task_type)
     if parent_task:
         redis.hset(keyt, "parent", parent_task)
     redis.hset(keyt, "resource", resource)
+    redis.hset(keyt, "ncu", ncu)
     redis.hset(keyt, "service", service)
     redis.hset(keyt, "content", json.dumps(content))
     redis.hset(keyt, "priority", priority)

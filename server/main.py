@@ -129,6 +129,7 @@ def launch(service):
         if (task_type != "train" and iterations != 1) or iterations < 1:
             flask.abort(flask.make_response(flask.jsonify(message="invalid value for iterations"), 400))
 
+    ncu = content.get("ncu", 1)
     priority = content.get("priority", 0)
 
     (xxyy, parent_task_id) = shallow_command_analysis(content["docker"]["command"])
@@ -137,7 +138,8 @@ def launch(service):
 
     while iterations > 0:
         task_id = build_task_id(content, xxyy, parent_task_id)
-        task.create(redis, task_id, task_type, parent_task_id, resource, service, content, files, priority)
+        task.create(redis, task_id, task_type, parent_task_id, resource, ncu,
+                    service, content, files, priority)
         task_ids.append(task_id)
         iterations -= 1
         if iterations > 0:
