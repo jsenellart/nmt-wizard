@@ -348,8 +348,8 @@ def launch_task(task_id,
         assert callback_url is not None, "callback_url needed for passing files"
         mount_tmpdir = None
         for m in docker_options['mount']:
-            if m.endswith('/root/tmp'):
-                mount_tmpdir = m[:-10]
+            if m.endswith(':/root/tmp') or m.endswith(':/root/tmp/'):
+                mount_tmpdir = m[:m.find(':')]
                 break
         assert mount_tmpdir is not None, "mount points need to include /root/tmp for passing files"
         cmd_mkdir = "mkdir -p %s/%s" % (mount_tmpdir, task_id)

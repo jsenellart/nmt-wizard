@@ -1,10 +1,16 @@
 import logging
 import paramiko
+import os
 
 from nmtwizard import common
 from nmtwizard.service import Service
 
 logger = logging.getLogger(__name__)
+
+def _clean_name(f):
+    if f.endswith('*') or f.endswith('@'):
+        return f[:-1]
+    return f
 
 def _get_params(config, options):
     params = {}
@@ -194,6 +200,30 @@ class SSHService(Service):
         logger.debug("successfully terminated")
         client.close()
 
+    def corpus_list(self, path):
+        server = self._config['variables']['server_pool'][0]
+        params = _get_params(self._config, {
+                    'server':server["host"]+':'+str(server["gpus"][0])})
+        docker_options = self._config['docker']
+        mount_corpusdir = None
+        for m in docker_options['mount']:
+            if m.endswith('/root/corpus/') or m.endswith('/root/corpus'):
+                mount_corpusdir = m[:m.find(':')]
+                break
+        if not mount_corpusdir:
+            return None
+        client = common.ssh_connect_with_retry(
+            params['server'],
+            params['login'],
+            self._config['privateKey'],
+            login_cmd=params['login_cmd'])
+        exit_status, stdout, stderr = common.run_command(client,
+                    " ".join(['ls -F ', os.path.join(mount_corpusdir, path)]))
+
+        if exit_status != 0:
+            return None
+
+        return map(_clean_name, stdout.read().split('\n'))
 
 def init(config):
     return SSHService(config)

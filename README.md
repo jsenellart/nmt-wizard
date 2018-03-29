@@ -98,12 +98,13 @@ For performance, multiple workers might be running simultaneously. In that case,
 
 The server has the following HTTP routes:
 
-| METHOD    | ROUTE | PARAAM | Description |
+| METHOD    | ROUTE | PARAM | Description |
 | ---       | --- | --- | --- |
 | `GET`     | `service/list` | | Returns available services |
 | `GET`     | `service/describe/{service_id}` | | Returns user selectable options for a specified service |
 | `GET`     | `service/check/{service_id}` | | Checks availability of a given service with provided user options |
-| `POST`    | `task/launch` | |  Launches a task on a given service with provided user options
+| `GET`     | `corpus/list/{service_id}` | `path` | list the files/directories on remote services at `path` location |
+| `POST`    | `task/launch` | |  Launches a task on a given service with provided user options |
 | `GET`     | `task/status/{task_id}` | |  Checks the status of a task |
 | `GET`     | `task/list` | prefix | Returns the list of tasks in the database |
 | `GET`     | `task/terminate/{task_id}` | |  Terminates a task, the process and/or instance associated with a task |
@@ -205,6 +206,33 @@ $ curl -X GET -d '{"launchTemplateName": "SingleTrainingDev"}' \
 {
   "message": ""
 }
+```
+
+#### `GET /corpus/list/<service_name>?path=PATH`
+
+Lists the corpus on the service.
+
+* **Arguments:**
+  * `service_name`: the service name
+  * (optional) `path`: path on the service, `/` by default
+* **Output:**
+  * If path or service not found, a HTTP 404 code with the error message (JSON)
+  * On success, a list with filename and their available extensions (JSON)
+* **Example:**
+
+```
+$ curl -X GET 'http://localhost:5000/corpus/list/demogpu02?path=en_fr/train'
+[
+  [
+    "btxt_2dir_en-GB-fr-YY_Legal__DCEP", 
+    ".en", 
+    ".fr"
+  ],
+  [
+    "btxt_2dir_en-XX-fr-YY_Dialog__merged-csli", 
+    ".en", 
+    ".fr"
+  ]
 ```
 
 #### `POST /task/launch/<service_name>`

@@ -87,6 +87,42 @@ def check(service):
     else:
         return flask.jsonify(message=details)
 
+@app.route("/corpus/list/<string:service>", methods=["GET"])
+def list_corpus(service):
+    service_module = _get_service(service)
+    path = flask.request.args.get('path') or '.'
+    if path.startswith('/'):
+        path = path[1:]
+    corpus_list = service_module.corpus_list(path)
+    if not corpus_list:
+        flask.abort(flask.make_response(flask.jsonify(message=str("path not found")), 404))
+    # group file list
+    files = dict()
+    for f in corpus_list:
+        if f.endswith("/"):
+            files[f] = []
+        elif f != "":
+            if f.endswith(".gz"):
+                f = f[0:-3]
+            p = f.rfind(".")
+            if p != -1:
+                prefix = f[0:p]
+                suffix = f[p:]
+            else:
+                prefix = f
+                suffix = ""
+            if prefix not in files:
+                files[prefix] = []
+            files[prefix].append(suffix)
+    res = []
+    for k in files:
+        if files[k]:
+            files[k].insert(0, k)
+            res.append(files[k])
+        else:
+            res.append(k)
+    return flask.jsonify(res)
+
 @app.route("/task/launch/<string:service>", methods=["POST"])
 def launch(service):
     content = None
