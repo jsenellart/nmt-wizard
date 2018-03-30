@@ -50,7 +50,6 @@ The configuration file has the following structure:
             }
         },
         "mount": [  // Volumes to mount when running the Docker image.
-            "/home/devling/corpus:/root/corpus",
             "/home/devling/models:/root/models"
         ],
         "envvar": {  // Environment variables to set when running the Docker image.
@@ -61,6 +60,10 @@ The configuration file has the following structure:
     ...,
     "disabled": [01],  // Boolean field to disable/enable the service.
     "storages": {  // Storage configuration as described in single-training-docker.
+    },
+    "corpus": {
+      "storage": "mystorage",
+      "mount": "/mount/mystorage"
     },
     "callback_url": "http://LAUNCHER_URL",
     "callback_interval": 60
