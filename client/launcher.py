@@ -64,17 +64,27 @@ parser.add_argument('-l', '--log-level', default='INFO',
 parser.add_argument('-j', '--json', action='store_true',
                     help="display output in json format from rest server (default text)")
 subparsers = parser.add_subparsers(help='command help', dest='cmd')
-parser_list_services = subparsers.add_parser('ls',
+
+parser_ls       = subparsers.add_parser('ls',
                                              help='list available services')
+
+parser_dir      = subparsers.add_parser('dir',
+                                             help='list available corpus on specified service')
+parser_dir.add_argument('-s', '--service', help="service name")
+parser_dir.add_argument('-p', '--path', default='/',
+                           help="path on the service corpus directory")
+
 parser_describe = subparsers.add_parser('describe',
                                         help='list available options for the service')
 parser_describe.add_argument('-s', '--service', help="service name")
-parser_check = subparsers.add_parser('check',
+
+parser_check    = subparsers.add_parser('check',
                                      help='check that service associated to provided options is operational')
 parser_check.add_argument('-s', '--service', help="service name")
 parser_check.add_argument('-o', '--options', default='{}',
                           help="options selected to run the service")
-parser_launch = subparsers.add_parser('launch',
+
+parser_launch   = subparsers.add_parser('launch',
                                       help='launch a task on the service associated to provided options')
 parser_launch.add_argument('-s', '--service', help="service name")
 parser_launch.add_argument('-o', '--options', default='{}',
@@ -98,24 +108,30 @@ parser_launch.add_argument('-p', '--priority', type=int, default=0,
                            help='task priority - highest better')
 parser_launch.add_argument('docker_command', type=str, nargs='*',
                            help='Docker command')
+
 parser_list_tasks = subparsers.add_parser('lt',
                                           help='list tasks matching prefix pattern')
 parser_list_tasks.add_argument('-p', '--prefix', default=os.getenv('LAUNCHER_TID', ''),
                                help='prefix for the tasks to list (default ENV[LAUNCHER_TID])')
-parser_del_tasks = subparsers.add_parser('dt',
+
+parser_del_tasks  = subparsers.add_parser('dt',
                                          help='delete tasks matching prefix pattern')
 parser_del_tasks.add_argument('-p', '--prefix', required=True,
                               help='prefix for the tasks to delete')
-parser_status = subparsers.add_parser('status', help='get status of a task')
+
+parser_status     = subparsers.add_parser('status', help='get status of a task')
 parser_status.add_argument('-k', '--task_id',
                               help="task identifier", required=True)
-parser_terminate = subparsers.add_parser('terminate', help='terminate a task')
+
+parser_terminate  = subparsers.add_parser('terminate', help='terminate a task')
 parser_terminate.add_argument('-k', '--task_id',
                               help="task identifier", required=True)
-parser_log = subparsers.add_parser('log', help='get log associated to a task')
+
+parser_log        = subparsers.add_parser('log', help='get log associated to a task')
 parser_log.add_argument('-k', '--task_id',
                               help="task identifier", required=True)
-parser_file = subparsers.add_parser('file', help='get file associated to a task')
+
+parser_file       = subparsers.add_parser('file', help='get file associated to a task')
 parser_file.add_argument('-k', '--task_id',
                               help="task identifier", required=True)
 parser_file.add_argument('-f', '--filename',
@@ -163,6 +179,22 @@ elif args.cmd == "lt":
             print("%-4s %-42s %-12s %6d   %-20s %-22s %-9s %s" %
                   (k["type"], k["task_id"], k["resource"], int(k["priority"]), 
                    date, k["image"], k["status"], k.get("message")))
+        sys.exit(0)
+elif args.cmd == "dir":
+    if args.service not in serviceList:
+        logger.fatal("ERROR: service '%s' not defined", args.service)
+        sys.exit(1)
+    r = requests.get(os.path.join(args.url, "corpus/list", args.service), params={ "path": args.path })
+    if r.status_code != 200:
+        logger.error('incorrect result from \'corpus/list\' service: %s', r.text)
+        sys.exit(1)
+    result = r.json()
+    if not args.json:
+        for r in result:
+            if isinstance(r, list):
+                print("\t".join(r))
+            else:
+                print(r)
         sys.exit(0)
 elif args.cmd == "describe":
     if args.service not in serviceList:

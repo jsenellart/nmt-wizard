@@ -99,7 +99,9 @@ class EC2Service(Service):
                 key_path,
                 delay=self._config["sshConnectionDelay"],
                 retry=self._config["maxSshConnectionRetry"])
-            common.fuse_s3_bucket(client, self._config["corpus"])
+            common.fuse_s3_bucket(client,
+                                  self._config["corpus"]["mount"],
+                                  self._config["storages"][self._config["corpus"]["storage"]])
             gpu_id = 1 if common.has_gpu_support(client) else 0
             task = common.launch_task(
                 task_id,
@@ -142,7 +144,6 @@ class EC2Service(Service):
         instance = ec2.Instance(instance_id)
         instance.terminate()
         logger.info("Instance %s is terminated.", instance.id)
-
 
 def init(config):
     return EC2Service(config)

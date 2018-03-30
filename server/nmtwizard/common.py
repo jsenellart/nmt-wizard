@@ -148,7 +148,7 @@ def ssh_connect_with_retry(hostname,
                 logger.warning("Failed to connect to %s via SSH (%s), retrying...",
                                hostname, str(e))
 
-def fuse_s3_bucket(client, corpus):
+def fuse_s3_bucket(client, mount_point, corpus):
     if not program_exists(client, "s3fs"):
         raise EnvironmentError("s3fs is not installed")
     if not run_and_check_command(
@@ -157,17 +157,17 @@ def fuse_s3_bucket(client, corpus):
             sudo=True):
         raise RuntimeError("failed to configure s3fs")
     status, _, stderr = run_command(client, "mkdir -p %s && chmod -R 775 %s" % (
-        corpus["mount"], corpus["mount"]))
+        mount_point, mount_point))
     if status != 0:
         return RuntimeError('failed to created mount directory: %s' % stderr.read())
     status, _, stderr = run_command(client, "echo %s:%s > s3_passwd && chmod 600 s3_passwd" % (
-        corpus["credentials"]["AWS_ACCESS_KEY_ID"],
-        corpus["credentials"]["AWS_SECRET_ACCESS_KEY"]))
+        corpus["aws_credentials"]["access_key_id"],
+        corpus["aws_credentials"]["secret_access_key"]))
     if status != 0:
         raise RuntimeError('failed to store S3 credentials: %s' % stderr.read())
     status, _, stderr = run_command(
         client, "s3fs %s %s -o allow_other -o passwd_file=s3_passwd" % (
-            corpus["bucket"], corpus["mount"]))
+            corpus["bucket"], mount_point))
     if status != 0:
         raise RuntimeError('failed to fuse S3 bucket: %s' % stderr.read())
 

@@ -39,8 +39,14 @@ def load_service(config_path, base_config=None):
     name = config["name"]
     if config.get("disabled") == 1:
         return name, None
-    if "module" not in config or "docker" not in config or "description" not in config:
+    if ("module" not in config or "docker" not in config or
+        "description" not in config or
+        "corpus" not in config or "storage" not in config["corpus"] or "mount" not in config["corpus"]
+        ):
         raise ValueError("invalid service definition in %s" % config_path)
+    if "mount" not in config["docker"]:
+        config["docker"] = []
+    config["docker"]["mount"].append(config["corpus"]["mount"]+":/root/corpus")
     service = importlib.import_module(config["module"]).init(config)
     return name, service
 

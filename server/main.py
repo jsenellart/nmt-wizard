@@ -8,6 +8,7 @@ from six.moves import configparser
 from nmtwizard import common, config, task
 from nmtwizard.redis_database import RedisDatabase
 from nmtwizard.helper import build_task_id, shallow_command_analysis, change_parent_task
+from nmtwizard.storage import StorageClient
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.ERROR)
@@ -93,7 +94,8 @@ def list_corpus(service):
     path = flask.request.args.get('path') or '.'
     if path.startswith('/'):
         path = path[1:]
-    corpus_list = service_module.corpus_list(path)
+    storages = StorageClient(service_module._config["storages"])
+    corpus_list = storages.dir(path, storage_id=service_module._config["corpus"]["storage"])
     if not corpus_list:
         flask.abort(flask.make_response(flask.jsonify(message=str("path not found")), 404))
     # group file list

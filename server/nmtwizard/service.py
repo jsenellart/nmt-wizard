@@ -103,8 +103,3 @@ class Service(object):
     def terminate(self, params):
         """Terminates a (possibly) running task."""
         raise NotImplementedError()
-
-    @abc.abstractmethod
-    def corpus_list(self, path):
-        """List available corpus for the service."""
-        raise NotImplementedError()

@@ -14,9 +14,15 @@
         ]
     },
     "privateKey": "credentials/id_rsa",
+    "corpus": {
+        "storage": "local_storage",
+        "upload_storage": "s3_storage",
+        "mount": "/home/devling/corpus"
+    },
     "docker": {
         "mount": [
-            "/mnt/nmt-corpus-pn9:/root/corpus"
+            "/home/user/models:/root/models",
+            "/home/user/tmp_wizard:/root/tmp"
         ],
         "envvar": {
         }
